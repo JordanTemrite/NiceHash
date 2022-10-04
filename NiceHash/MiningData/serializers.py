@@ -18,4 +18,4 @@ class OrderBookSet(serializers.HyperlinkedModelSerializer):
 class CurrentProfitSet(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CurrentProfit
-        fields = ('currency_type', 'current_profit')
+        fields = ('currency_type', 'current_profit', 'current_btc_price')

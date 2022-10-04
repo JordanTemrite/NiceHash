@@ -30,5 +30,6 @@ def index(request):
     monitor.get_order_book()
     monitor.get_miner_stats()
     monitor.get_current_profit()
+    monitor.calc_current_rates()
 
     return render(request, 'MiningData/index.html')

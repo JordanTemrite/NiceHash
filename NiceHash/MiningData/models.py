@@ -17,4 +17,5 @@ class CurrentProfit(models.Model):
 
     currency_type = models.TextField('currency_type', primary_key=True)
     current_profit = models.DecimalField('current_profit', max_digits=50, decimal_places=2)
+    current_btc_price = models.DecimalField('current_btc_price', max_digits=50, decimal_places=2)
 

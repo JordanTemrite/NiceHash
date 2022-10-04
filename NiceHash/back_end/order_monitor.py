@@ -1,6 +1,7 @@
 from MiningData.models import MinerData, OrderBookData, CurrentProfit
 import requests
 from bs4 import BeautifulSoup
+import time
 
 
 class OrderMonitor:
@@ -22,8 +23,9 @@ class OrderMonitor:
         us_orders = self.order_book['stats']['USA']['orders']
 
         relevant_data = OrderBookData.objects.filter(pk='ETC')
+        relevant_data = relevant_data.first()
 
-        if len(relevant_data) == 0:
+        if relevant_data is None:
 
             new_set = OrderBookData()
             new_set.currency_type = 'ETC'
@@ -57,8 +59,9 @@ class OrderMonitor:
         last_block_found = self.miner_stats['rewards'][0]['timestamp']
 
         relevant_data = MinerData.objects.filter(pk='ETC')
+        relevant_data = relevant_data.first()
 
-        if len(relevant_data) == 0:
+        if relevant_data is None:
 
             new_set = MinerData()
             new_set.currency_type = 'ETC'
@@ -90,22 +93,41 @@ class OrderMonitor:
 
         self.th_profit = float(un_san[0].text.split('>')[0].split('$')[0].replace(" ", ""))
 
-        relevant_data = CurrentProfit.objects.filter(pk='ETC')
+        timestamp = int(time.time()) - 30
 
-        if len(relevant_data) == 0:
+        resp = requests.get(f'https://api.kraken.com/0/public/Spread?pair=XBTUSD&since{timestamp}')
+
+        final = [pd for pd in resp.json()['result']['XXBTZUSD'] if pd[0] == timestamp][0][1]
+
+        relevant_data = CurrentProfit.objects.filter(pk='ETC')
+        relevant_data = relevant_data.first()
+
+        if relevant_data is None:
 
             new_set = CurrentProfit()
             new_set.currency_type = 'ETC'
             new_set.current_profit = self.th_profit
+            new_set.current_btc_price = final
 
             new_set.save()
 
         else:
 
             relevant_data.current_profit = self.th_profit
+            relevant_data.current_btc_price = final
 
             relevant_data.save()
 
+    @staticmethod
+    def calc_current_rates():
 
+        current_price_data = CurrentProfit.objects.filter(pk='ETC').first()
 
+        current_btc_price = current_price_data.current_btc_price
+        current_profit = current_price_data.current_profit
 
+        current_strike_price = current_profit / current_btc_price
+
+        min_profit_strike = float(current_strike_price) * 0.955
+
+        print(round(current_strike_price, 5), round(min_profit_strike, 5))
