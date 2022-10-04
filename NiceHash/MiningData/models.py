@@ -1,7 +1,20 @@
 from django.db import models
 
 
-class MiningData(models.Model):
+class OrderBookData(models.Model):
 
-    date = models.IntegerField('date', primary_key=True)
-    mining_data = models.JSONField('mining_data')
+    currency_type = models.TextField('currency_type', primary_key=True)
+    order_book_data = models.JSONField('order_book_data')
+
+
+class MinerData(models.Model):
+
+    currency_type = models.TextField('currency_type', primary_key=True)
+    miner_data = models.JSONField('Miner Data')
+
+
+class CurrentProfit(models.Model):
+
+    currency_type = models.TextField('currency_type', primary_key=True)
+    current_profit = models.DecimalField('current_profit', max_digits=50, decimal_places=2)
+
