@@ -168,9 +168,6 @@
                 </div>
                 <nav class="dropdown-list w-dropdown-list">
                   <p class="dropdown-info">Select a token</p>
-                  <a href="#" class="token-link w-dropdown-link">ETC</a>
-                  <a href="#" class="token-link w-dropdown-link">XHR</a>
-                  <a href="#" class="token-link w-dropdown-link">LTC</a>
                 </nav>
               </div>
             </div>
@@ -276,7 +273,6 @@
                 <span id="current-profitability" class="current-profitability"
                   >0.00</span
                 >
-                <span class="token-id">ETC</span>
               </p>
             </div>
           </div>
@@ -312,7 +308,7 @@
           </div>
           <div class="stats-block-wrapper _50">
             <div class="stats-block full">
-              <p class="stats-header">Last Block Time</p>
+              <p class="stats-header">Last Block Found</p>
               <p id="last-block-time" class="stats-med">10:00:00 AM</p>
             </div>
           </div>
@@ -334,7 +330,7 @@
       integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
       crossorigin="anonymous"
     ></script>
-    <script src="js/temhash.js" type="text/javascript"></script>
+    <script src="{% static 'js/temhash.js'%}" type="text/javascript"></script>
     <!-- [if lte IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/placeholders/3.0.2/placeholders.min.js"></script><![endif] -->
     {% load static %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.2/gsap.min.js"></script>

@@ -1,4 +1,4 @@
-let currencies = ["ETC", "LTC"];
+let currencies = ["ETC", "XMR"];
 let mainCurrency;
 
 let euTable = [

@@ -97,10 +97,13 @@ class OrderMonitor:
 
         resp = requests.get(f'https://api.kraken.com/0/public/Spread?pair=XBTUSD&since{timestamp}')
 
-        final = [pd for pd in resp.json()['result']['XXBTZUSD'] if pd[0] == timestamp][0][1]
+        final = resp.json()['result']['XXBTZUSD'][-1][1]
+        print(f"FINAL IS {final}")
 
         relevant_data = CurrentProfit.objects.filter(pk='ETC')
         relevant_data = relevant_data.first()
+
+        calc_data = self.calc_current_rates()
 
         if relevant_data is None:
 
@@ -108,6 +111,8 @@ class OrderMonitor:
             new_set.currency_type = 'ETC'
             new_set.current_profit = self.th_profit
             new_set.current_btc_price = final
+            new_set.strike_price = calc_data[0]
+            new_set.min_profit_price = calc_data[1]
 
             new_set.save()
 
@@ -115,6 +120,8 @@ class OrderMonitor:
 
             relevant_data.current_profit = self.th_profit
             relevant_data.current_btc_price = final
+            relevant_data.strike_price = calc_data[0]
+            relevant_data.min_profit_price = calc_data[1]
 
             relevant_data.save()
 
@@ -130,4 +137,24 @@ class OrderMonitor:
 
         min_profit_strike = float(current_strike_price) * 0.955
 
-        print(round(current_strike_price, 5), round(min_profit_strike, 5))
+        return [round(current_strike_price, 5), round(min_profit_strike, 5)]
+
+    def run_loop(self):
+
+        start_time = int(time.time())
+        loop_time = 30
+        next_loop = 0
+
+        while (int(start_time) + 60) > int(time.time()):
+
+            if next_loop <= int(time.time()):
+                print(f"Running Loop {int(time.time())}")
+
+                next_loop = int(time.time()) + int(loop_time)
+                self.get_order_book()
+                self.get_miner_stats()
+                self.get_current_profit()
+
+            else:
+
+                pass
