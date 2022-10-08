@@ -21,3 +21,9 @@ class CurrentProfit(models.Model):
     strike_price = models.DecimalField('strike_price', max_digits=50, decimal_places=4)
     min_profit_price = models.DecimalField('min_profit_price', max_digits=50, decimal_places=4)
 
+
+class HashOrderData(models.Model):
+
+    order_id = models.TextField('order_id', primary_key=True)
+    hash_order_data = models.JSONField('hash_order_data')
+

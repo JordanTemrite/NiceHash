@@ -1,7 +1,11 @@
-from MiningData.models import MinerData, OrderBookData, CurrentProfit
+import uuid
+import hmac
+import hashlib
+from MiningData.models import MinerData, OrderBookData, CurrentProfit, HashOrderData
 import requests
 from bs4 import BeautifulSoup
 import time
+import json
 
 
 class OrderMonitor:
@@ -49,14 +53,19 @@ class OrderMonitor:
 
     def get_miner_stats(self):
 
-        url_2 = 'https://solo-etc.2miners.com/api/accounts/0xdabcA29a4eC112B874D8d96eeD06eA10427e88Bd'
+        url_2 = 'https://solo-etc.2miners.com/api/accounts/0xdbdf66f23305f495b879da36df6fca114d4e501c'
         response_2 = requests.get(url_2)
         self.miner_stats = response_2.json()
 
         current_block_luck = self.miner_stats['currentLuck']
-        current_balance_due = self.miner_stats['stats']['balance']
-        immature_balance = self.miner_stats['stats']['immature']
-        last_block_found = self.miner_stats['rewards'][0]['timestamp']
+        try:
+            current_balance_due = self.miner_stats['stats']['balance']
+            immature_balance = self.miner_stats['stats']['immature']
+            last_block_found = self.miner_stats['rewards'][0]['timestamp']
+        except:
+            current_balance_due = 0
+            immature_balance = 0
+            last_block_found = 0
 
         relevant_data = MinerData.objects.filter(pk='ETC')
         relevant_data = relevant_data.first()
@@ -138,6 +147,76 @@ class OrderMonitor:
         min_profit_strike = float(current_strike_price) * 0.955
 
         return [round(current_strike_price, 5), round(min_profit_strike, 5)]
+
+    # Generate a function that will return my orders from the nicehash api
+    @staticmethod
+    def get_my_orders():
+
+        url_root = 'https://api2.nicehash.com'
+        xtime = str(json.loads(requests.get('https://api2.nicehash.com/api/v2/time').text)['serverTime'])
+        x_nonce = str(uuid.uuid4())
+        x_org_id = '192bb55f-b79a-419f-8fcf-03c57278439a'
+        apikey = '28b80d0c-7658-4854-8af6-245c03d7a18f'
+        method = 'GET'
+        pth = '/main/api/v2/hashpower/myOrders'
+        qry = f'algorithm=ETCHASH&ts={1660000000}&op=GT&limit=100'
+        s_key = '0172fe41-da9c-4e61-a258-3a2b7ca291fc6b012f85-5532-41ee-ac1e-27bbecff5e2e'
+        h_input = '{}\00{}\00{}\00\00{}\00\00{}\00{}\00{}'.format(apikey, xtime, x_nonce, x_org_id, method, pth, qry)
+        sig = hmac.new(s_key.encode(), h_input.encode(), hashlib.sha256).hexdigest()
+        xauth = '{}:{}'.format(apikey, sig)
+        r = requests.get('{}{}?{}'.format(url_root, pth, qry), headers={'X-Time': xtime, 'X-Nonce': x_nonce, 'X-Organization-Id': x_org_id, 'X-Request-Id': x_nonce, 'X-Auth': xauth})
+        data = json.loads(r.text)
+
+        for item in data['list']:
+
+            order_id = item['id']
+            btc_left = item['availableAmount']
+            btc_spent = item['payedAmount']
+            estimated_time_at_speed = item['estimateDurationInSeconds']
+            market = item['market']
+            current_price = item['price']
+            current_hash_limit = item['limit']
+            alive_status = item['alive']
+            current_accepted_speed = item['acceptedCurrentSpeed']
+            rig_count = item['rigsCount']
+
+            relevant_data = HashOrderData.objects.filter(pk=order_id).first()
+
+            if relevant_data is None:
+
+                new_set = HashOrderData()
+                new_set.order_id = order_id
+                new_set.hash_order_data = {
+                    'btc_left': btc_left,
+                    'btc_spent': btc_spent,
+                    'estimated_time_at_speed': estimated_time_at_speed,
+                    'market': market,
+                    'current_price': current_price,
+                    'current_hash_limit': current_hash_limit,
+                    'alive_status': alive_status,
+                    'current_accepted_speed': current_accepted_speed,
+                    'rig_count': rig_count
+                }
+
+                new_set.save()
+
+            else:
+
+                if alive_status is True:
+
+                    relevant_data.hash_order_data = {
+                        'btc_left': btc_left,
+                        'btc_spent': btc_spent,
+                        'estimated_time_at_speed': estimated_time_at_speed,
+                        'market': market,
+                        'current_price': current_price,
+                        'current_hash_limit': current_hash_limit,
+                        'alive_status': alive_status,
+                        'current_accepted_speed': current_accepted_speed,
+                        'rig_count': rig_count
+                    }
+
+                    relevant_data.save()
 
     def run_loop(self):
 

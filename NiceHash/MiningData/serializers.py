@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import OrderBookData, MinerData, CurrentProfit
+from .models import OrderBookData, MinerData, CurrentProfit, HashOrderData
 
 
 class MiningDataSet(serializers.HyperlinkedModelSerializer):
@@ -13,6 +13,12 @@ class OrderBookSet(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = OrderBookData
         fields = ('currency_type', 'order_book_data')
+
+
+class HashOrderSet(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = HashOrderData
+        fields = ('order_id', 'hash_order_data')
 
 
 class CurrentProfitSet(serializers.HyperlinkedModelSerializer):

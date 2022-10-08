@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'mining_data', views.MiningDataViews)
 router.register(r'order_book', views.OrderViews)
 router.register(r'current_profit', views.ProfitViews)
+router.register(r'hash_orders', views.HashOrderViews)
 
 
 app_name = 'MiningData'

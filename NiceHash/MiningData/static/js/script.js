@@ -23,8 +23,16 @@ async function get_table_data() {
 }
 
 
-function generateTable(price, limit, miners, speed) {
-  return `<div class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+function generateTable(price, limit, miners, speed, owned, at_limit) {
+  if(owned == true) {
+    return `<div style="background-color: #004385;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+  } else {
+    if(at_limit == true) {
+      return `<div style="background-color: #710000;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+    } else {
+      return `<div class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+    }
+  }
 }
 
 function updateTokenIds(newTokenId) {
@@ -54,26 +62,84 @@ function clearChildren(element) {
   }
 }
 
-function euTableLoop(table) {
+function euTableLoop(table, owned_ids, eu_th) {
   $("#eu-table-wrapper").empty();
+  var total_impact = 0.00;
+  let at_limit = false;
   table.forEach(function (item) {
+    let owned = false;
+    let speed_impact;
+    for(i = 0; i < owned_ids.length; i++) {
+      if(item.id == owned_ids[i]) {
+        owned = true
+      }
+    }
+    let addition = 0;
     if(item.limit == 0) {
-      item.limit = "∞|∞|∞|∞";
+      addition = 100;
+    } else {
+      addition = (item.limit / eu_th * 100);
+    }
+    total_impact = total_impact + addition;
+    if(total_impact > 100) {
+      at_limit = true;
+      if(item.limit == 0) {
+        speed_impact = "∞|∞|∞" + "  100%";
+      } else {
+        speed_impact = parseFloat(item.limit).toFixed(3) + "  100%";
+      }
+    } else {
+      if(item.limit == 0) {
+        speed_impact = "∞|∞|∞" + "  " + parseFloat(total_impact).toFixed(2) + "%";
+      } else {
+        speed_impact = parseFloat(item.limit).toFixed(3) + "  " + parseFloat(total_impact).toFixed(2) + "%";
+      }
     }
     if(item.payingSpeed != 0) {
-      $("#eu-table-wrapper").append(generateTable(item.price, item.limit, item.rigsCount, item.payingSpeed));
+      if(item.limit != 0.00100000) {
+        $("#eu-table-wrapper").append(generateTable(item.price, speed_impact, item.rigsCount, item.payingSpeed, owned, at_limit));
+      }
     }
   });
 }
 
-function usTableLoop(table) {
+function usTableLoop(table, owned_ids, us_th) {
   $("#us-table-wrapper").empty();
+  var total_impact = 0.00;
+  let at_limit = false;
   table.forEach(function (item) {
+    let owned = false;
+    let speed_impact;
+    for(i = 0; i < owned_ids.length; i++) {
+      if(item.id == owned_ids[i]) {
+        owned = true
+      }
+    }
+    let addition = 0;
     if(item.limit == 0) {
-      item.limit = "∞|∞|∞|∞";
+      addition = 100;
+    } else {
+      addition = (item.limit / us_th * 100);
+    }
+    total_impact = total_impact + addition;
+    if(total_impact > 100) {
+      at_limit = true;
+      if(item.limit == 0) {
+        speed_impact = "∞|∞|∞" + "  100%";
+      } else {
+        speed_impact = parseFloat(item.limit).toFixed(3) + "  100%";
+      }
+    } else {
+      if(item.limit == 0) {
+        speed_impact = "∞|∞|∞" + "  " + parseFloat(total_impact).toFixed(2) + "%";
+      } else {
+        speed_impact = parseFloat(item.limit).toFixed(3) + "  " + parseFloat(total_impact).toFixed(2) + "%";
+      }
     }
     if(item.payingSpeed != 0) {
-      $("#us-table-wrapper").append(generateTable(item.price, item.limit, item.rigsCount, item.payingSpeed));
+      if (item.limit != 0.00100000) {
+        $("#us-table-wrapper").append(generateTable(item.price, speed_impact, item.rigsCount, item.payingSpeed, owned, at_limit));
+      }
     }
   });
 }
@@ -104,6 +170,20 @@ async function updateInfo(eu_th, us_th) {
     contentType: "application/json",
   });
 
+  const order_data = await $.ajax({
+    url: 'https://nicehash.txidpool.com/api/hash_orders/',
+    dataType: "json",
+    contentType: "application/json",
+  });
+
+  let alive_ids = [];
+
+  for(i = 0; i < order_data.length; i++) {
+    if(order_data[i]['hash_order_data']['alive_status'] == true) {
+      alive_ids.push(order_data[i]['order_id']);
+    }
+  }
+
   const currentProfitability = price_data['strike_price'] + "  /  " + price_data['min_profit_price'];
   const unconfirmedBal = nf.format(mining_data['miner_data']['immature_balance'] / 1e9);
   const unpaidBal = nf.format(mining_data['miner_data']['current_balance_due'] / 1e9);
@@ -113,8 +193,8 @@ async function updateInfo(eu_th, us_th) {
   updateTokenIds(mainCurrency);
   updateTHS(eu_th, us_th);
   updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLuck, 100, lastBlockTimeUnix, 100);
-  euTableLoop(euTable);
-  usTableLoop(usTable);
+  euTableLoop(euTable, alive_ids, eu_th);
+  usTableLoop(usTable, alive_ids, us_th);
 }
 
 function formatTime(unix) {
@@ -159,5 +239,5 @@ $(document).ready(async function () {
     setInterval(async function () {
     const speeds = await get_table_data();
     await updateInfo(speeds[0], speeds[1]);
-  } , 30000);
+  } , 15000);
 });
