@@ -32,6 +32,6 @@ class ProfitViews(viewsets.ModelViewSet):
 def index(request):
 
     order_monitor = OrderMonitor()
-    order_monitor.get_my_orders()
+    order_monitor.get_miner_stats()
 
     return render(request, 'MiningData/index.html')

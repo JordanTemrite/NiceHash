@@ -25,12 +25,12 @@ async function get_table_data() {
 
 function generateTable(price, limit, miners, speed, owned, at_limit) {
   if(owned == true) {
-    return `<div style="background-color: #004385;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+    return `<div style="background-color: #004385;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block big"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block small"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
   } else {
     if(at_limit == true) {
-      return `<div style="background-color: #710000;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+      return `<div style="background-color: #710000;" class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block big"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block small"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
     } else {
-      return `<div class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
+      return `<div class="table-item"><div class="table-item-block"><p class="table-item-text price">${price}</p></div><div class="table-item-block big"><p class="table-item-text limit">${limit}</p></div><div class="table-item-block small"><p class="table-item-text miners">${miners}</p></div><div class="table-item-block"><p class="table-item-text speed">${speed}</p></div></div>`;
     }
   }
 }
@@ -189,10 +189,30 @@ async function updateInfo(eu_th, us_th) {
   const unpaidBal = nf.format(mining_data['miner_data']['current_balance_due'] / 1e9);
   const personalLuck = mining_data['miner_data']['current_block_luck'] + " %";
   const lastBlockTimeUnix = mining_data['miner_data']['last_block_found'];
+  const avgPersonalLuck = parseFloat(mining_data['miner_data']['average_block_luck']).toFixed(2) + " %";
+
+  let blocks = ['#success-0', '#success-1', '#success-2', '#success-3', '#success-4', '#success-5'];
+  let block_info = mining_data['miner_data']['block_data'].reverse();
+
+  for(let zed = 0; zed < blocks.length; zed++) {
+
+    let date = new Date(block_info[zed]['timestamp'] * 1000);
+    let maturity = '';
+
+    if(block_info[zed]['immature'] == 'True') {
+      maturity = 'Immature';
+    } else {
+      maturity = 'Mature';
+    }
+
+    $(blocks[zed]).children('.time-info').text(date.getMonth() + "/" + date.getDate() + "/" + date.getFullYear() + "  " + formatTime(block_info[zed]['timestamp']));
+    $(blocks[zed]).children('.reward-info').text(block_info[zed]['reward'] / 1e9 + " " + maturity);
+    $(blocks[zed]).children('.luck-info').text(parseFloat(block_info[zed]['currentLuck']).toFixed(2) + " %");
+  }
 
   updateTokenIds(mainCurrency);
   updateTHS(eu_th, us_th);
-  updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLuck, 100, lastBlockTimeUnix, 100);
+  updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLuck, avgPersonalLuck, lastBlockTimeUnix, 100);
   euTableLoop(euTable, alive_ids, eu_th);
   usTableLoop(usTable, alive_ids, us_th);
 }
@@ -241,3 +261,6 @@ $(document).ready(async function () {
     await updateInfo(speeds[0], speeds[1]);
   } , 15000);
 });
+
+
+

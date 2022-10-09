@@ -83,10 +83,10 @@ WSGI_APPLICATION = 'NiceHash.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'nice_hash',
-        'USER': 'ripper_db_access',
-        'PASSWORD': 'ripper~!~!~!db~!~!~!access~!~!~!',
-        'HOST': '24.254.134.137',
+        'NAME': 'temhash',
+        'USER': 'temhash',
+        'PASSWORD': 'Drums123~!~!~!',
+        'HOST': '154.12.239.18',
         'PORT': '5432',
     }
 }

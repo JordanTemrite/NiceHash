@@ -62,6 +62,14 @@ class OrderMonitor:
             current_balance_due = self.miner_stats['stats']['balance']
             immature_balance = self.miner_stats['stats']['immature']
             last_block_found = self.miner_stats['rewards'][0]['timestamp']
+            block_data = self.miner_stats['rewards']
+
+            average_block_luck = 0.00
+
+            for item in block_data:
+                average_block_luck += item['currentLuck']
+
+            average_block_luck = average_block_luck / len(block_data)
         except:
             current_balance_due = 0
             immature_balance = 0
@@ -78,7 +86,9 @@ class OrderMonitor:
                 'current_block_luck': current_block_luck,
                 'current_balance_due': current_balance_due,
                 'immature_balance': immature_balance,
-                'last_block_found': last_block_found
+                'last_block_found': last_block_found,
+                'block_data': block_data[0:6],
+                'average_block_luck': average_block_luck
             }
 
             new_set.save()
@@ -89,7 +99,9 @@ class OrderMonitor:
                 'current_block_luck': current_block_luck,
                 'current_balance_due': current_balance_due,
                 'immature_balance': immature_balance,
-                'last_block_found': last_block_found
+                'last_block_found': last_block_found,
+                'block_data': block_data[0:6],
+                'average_block_luck': average_block_luck
             }
 
             relevant_data.save()
@@ -202,21 +214,19 @@ class OrderMonitor:
 
             else:
 
-                if alive_status is True:
+                relevant_data.hash_order_data = {
+                    'btc_left': btc_left,
+                    'btc_spent': btc_spent,
+                    'estimated_time_at_speed': estimated_time_at_speed,
+                    'market': market,
+                    'current_price': current_price,
+                    'current_hash_limit': current_hash_limit,
+                    'alive_status': alive_status,
+                    'current_accepted_speed': current_accepted_speed,
+                    'rig_count': rig_count
+                }
 
-                    relevant_data.hash_order_data = {
-                        'btc_left': btc_left,
-                        'btc_spent': btc_spent,
-                        'estimated_time_at_speed': estimated_time_at_speed,
-                        'market': market,
-                        'current_price': current_price,
-                        'current_hash_limit': current_hash_limit,
-                        'alive_status': alive_status,
-                        'current_accepted_speed': current_accepted_speed,
-                        'rig_count': rig_count
-                    }
-
-                    relevant_data.save()
+                relevant_data.save()
 
     def run_loop(self):
 
