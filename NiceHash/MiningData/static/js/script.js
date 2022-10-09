@@ -150,7 +150,7 @@ function updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLu
   $("#unpaid-bal").text(unpaidBal);
   $("#personal-luck").text(personalLuck);
   $("#avg-personal-luck").text(avgPersonalLuck);
-  $("#last-block-time").text(formatTime(lastBlockTimeUnix));
+  $("#last-block-time").text(lastBlockTimeUnix);
   $("#overall-profit").text(totalOverallProfit);
 }
 
@@ -188,7 +188,8 @@ async function updateInfo(eu_th, us_th) {
   const unconfirmedBal = nf.format(mining_data['miner_data']['immature_balance'] / 1e9);
   const unpaidBal = nf.format(mining_data['miner_data']['current_balance_due'] / 1e9);
   const personalLuck = mining_data['miner_data']['current_block_luck'] + " %";
-  const lastBlockTimeUnix = mining_data['miner_data']['last_block_found'];
+  const luck_last_16 = parseFloat(mining_data['miner_data']['average_last_16']).toFixed(2) + " %";
+  const luck_last_32 = parseFloat(mining_data['miner_data']['average_last_32']).toFixed(2) + " %";
   const avgPersonalLuck = parseFloat(mining_data['miner_data']['average_block_luck']).toFixed(2) + " %";
 
   let blocks = ['#success-0', '#success-1', '#success-2', '#success-3', '#success-4', '#success-5'];
@@ -212,7 +213,7 @@ async function updateInfo(eu_th, us_th) {
 
   updateTokenIds(mainCurrency);
   updateTHS(eu_th, us_th);
-  updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLuck, avgPersonalLuck, lastBlockTimeUnix, 100);
+  updateStats(currentProfitability, unconfirmedBal, unpaidBal, personalLuck, avgPersonalLuck, luck_last_16, luck_last_32);
   euTableLoop(euTable, alive_ids, eu_th);
   usTableLoop(usTable, alive_ids, us_th);
 }

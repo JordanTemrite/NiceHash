@@ -69,7 +69,19 @@ class OrderMonitor:
             for item in block_data:
                 average_block_luck += item['currentLuck']
 
+            index = 0
+            last_16 = 0.00
+            last_32 = 0.00
+            for other_data in block_data[0:32]:
+
+                if index < 16:
+                    last_16 += other_data['currentLuck']
+                    index += 1
+                last_32 += other_data['currentLuck']
+
             average_block_luck = average_block_luck / len(block_data)
+            last_16 = last_16 / 16
+            last_32 = last_32 / 32
         except:
             current_balance_due = 0
             immature_balance = 0
@@ -88,7 +100,9 @@ class OrderMonitor:
                 'immature_balance': immature_balance,
                 'last_block_found': last_block_found,
                 'block_data': block_data[0:6],
-                'average_block_luck': average_block_luck
+                'average_block_luck': average_block_luck,
+                'average_last_16': last_16,
+                'average_last_32': last_32
             }
 
             new_set.save()
@@ -101,7 +115,9 @@ class OrderMonitor:
                 'immature_balance': immature_balance,
                 'last_block_found': last_block_found,
                 'block_data': block_data[0:6],
-                'average_block_luck': average_block_luck
+                'average_block_luck': average_block_luck,
+                'average_last_16': last_16,
+                'average_last_32': last_32
             }
 
             relevant_data.save()
